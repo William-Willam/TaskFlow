@@ -10,10 +10,10 @@ Sistema de gerenciamento de tarefas desenvolvido com **Spring Boot** e **Angular
 - Java 21
 - Spring Boot 3.5
 - Spring Data JPA
-- Spring Security + JWT
+- Spring Security + JWT (jjwt 0.12.6)
 - MySQL 8
 - Lombok
-- Swagger / OpenAPI (springdoc)
+- Swagger / OpenAPI (springdoc 2.8.16)
 
 ### Frontend _(em desenvolvimento)_
 - Angular 17
@@ -25,11 +25,13 @@ Sistema de gerenciamento de tarefas desenvolvido com **Spring Boot** e **Angular
 ## Funcionalidades
 
 - Cadastro e autenticação de usuários com JWT
+- Token JWT com expiração de 24 horas
+- Rotas protegidas — acesso negado sem token válido
 - CRUD completo de projetos por usuário
 - CRUD completo de tarefas vinculadas a projetos
 - Dashboard Kanban com status: Pendente, Em Andamento e Concluído
 - Isolamento de dados por usuário autenticado
-- Documentação interativa via Swagger UI
+- Documentação interativa via Swagger UI com suporte a autenticação JWT
 
 ---
 
@@ -39,24 +41,31 @@ Sistema de gerenciamento de tarefas desenvolvido com **Spring Boot** e **Angular
 taskflow-api/
 ├── src/main/java/com/taskflow/
 │   ├── config/
-│   │   └── SecurityConfig.java
+│   │   ├── ApplicationConfig.java       ← beans de segurança
+│   │   ├── SecurityConfig.java          ← filtros e rotas protegidas
+│   │   └── SwaggerConfig.java           ← configuração do Swagger + JWT
+│   ├── security/
+│   │   └── JwtAuthFilter.java           ← intercepta e valida tokens
 │   ├── controller/
+│   │   ├── AuthController.java          ← /auth/register e /auth/login
 │   │   ├── UsuarioController.java
 │   │   ├── ProjetoController.java
 │   │   └── TarefaController.java
 │   ├── dto/
 │   │   ├── request/
+│   │   │   ├── LoginRequest.java
 │   │   │   ├── UsuarioRequest.java
 │   │   │   ├── ProjetoRequest.java
 │   │   │   └── TarefaRequest.java
 │   │   └── response/
+│   │       ├── AuthResponse.java
 │   │       ├── UsuarioResponse.java
 │   │       ├── ProjetoResponse.java
 │   │       └── TarefaResponse.java
 │   ├── enums/
 │   │   └── StatusTarefa.java
 │   ├── model/
-│   │   ├── Usuario.java
+│   │   ├── Usuario.java                 ← implementa UserDetails
 │   │   ├── Projeto.java
 │   │   └── Tarefa.java
 │   ├── repository/
@@ -64,6 +73,8 @@ taskflow-api/
 │   │   ├── ProjetoRepository.java
 │   │   └── TarefaRepository.java
 │   └── service/
+│       ├── AuthService.java             ← registro e login
+│       ├── JwtService.java              ← geração e validação de tokens
 │       ├── UsuarioService.java
 │       ├── ProjetoService.java
 │       └── TarefaService.java
@@ -92,20 +103,20 @@ Projeto  1 ──── N Tarefa
 
 ## Endpoints da API
 
-### Autenticação
+### Autenticação — rotas públicas
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
-| POST | `/auth/register` | Cadastrar novo usuário |
-| POST | `/auth/login` | Autenticar e obter token JWT |
+| POST | `/auth/register` | Cadastrar novo usuário e receber token JWT |
+| POST | `/auth/login` | Autenticar e receber token JWT |
 
-### Usuários
+### Usuários — requer token JWT
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | POST | `/usuarios` | Criar usuário |
 | GET | `/usuarios/{id}` | Buscar usuário por ID |
 | GET | `/usuarios` | Listar todos os usuários |
 
-### Projetos
+### Projetos — requer token JWT
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/projetos?usuarioId={id}` | Listar projetos do usuário |
@@ -113,7 +124,7 @@ Projeto  1 ──── N Tarefa
 | PUT | `/projetos/{id}?usuarioId={id}` | Atualizar projeto |
 | DELETE | `/projetos/{id}?usuarioId={id}` | Excluir projeto |
 
-### Tarefas
+### Tarefas — requer token JWT
 | Método | Endpoint | Descrição |
 |--------|----------|-----------|
 | GET | `/tarefas?usuarioId={id}` | Listar todas as tarefas do usuário |
@@ -121,6 +132,23 @@ Projeto  1 ──── N Tarefa
 | POST | `/tarefas?usuarioId={id}` | Criar tarefa |
 | PUT | `/tarefas/{id}?usuarioId={id}` | Atualizar tarefa |
 | DELETE | `/tarefas/{id}?usuarioId={id}` | Excluir tarefa |
+
+---
+
+## Autenticação JWT
+
+Todas as rotas exceto `/auth/**`, `/swagger-ui/**` e `/v3/api-docs/**` exigem autenticação.
+
+**Fluxo:**
+
+```
+1. POST /auth/register ou /auth/login
+2. Copiar o token retornado no campo "token"
+3. Enviar no header de cada requisição:
+   Authorization: Bearer <token>
+```
+
+**Expiração:** 24 horas
 
 ---
 
@@ -162,6 +190,9 @@ spring.jpa.open-in-view=false
 
 server.port=8080
 spring.application.name=taskflow-api
+
+jwt.secret=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+jwt.expiration=86400000
 ```
 
 ### 4. Executar o projeto
@@ -182,6 +213,13 @@ Com a aplicação rodando, acesse o Swagger UI:
 http://localhost:8080/swagger-ui/index.html
 ```
 
+Para testar rotas protegidas no Swagger:
+1. Execute `POST /auth/register` ou `POST /auth/login`
+2. Copie o token retornado
+3. Clique em **Authorize 🔒** no topo da página
+4. Cole o token no formato: `Bearer <token>`
+5. Clique em **Authorize** → **Close**
+
 ---
 
 ## Status do projeto
@@ -191,8 +229,8 @@ http://localhost:8080/swagger-ui/index.html
 | 1 | Ambiente e configuração | ✅ Concluído |
 | 2 | Banco de dados e entidades JPA | ✅ Concluído |
 | 3 | Backend — Controllers, Services, DTOs | ✅ Concluído |
-| 4 | Segurança com JWT | 🔄 Em andamento |
-| 5 | Frontend Angular | ⏳ Pendente |
+| 4 | Segurança com JWT | ✅ Concluído |
+| 5 | Frontend Angular | 🔄 Em andamento |
 | 6 | Integração e testes | ⏳ Pendente |
 
 ---
