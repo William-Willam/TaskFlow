@@ -1,59 +1,131 @@
-# TaskflowFrontend
+# TaskFlow Frontend
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.2.3.
+Interface web desenvolvida com **Angular 17** e **Angular Material**, consumindo a API REST do TaskFlow.
 
-## Development server
+---
 
-To start a local development server, run:
+## Tecnologias
+
+- Angular 17
+- Angular Material 17
+- TypeScript
+- RxJS
+- Angular Reactive Forms
+
+---
+
+## Estrutura do projeto
+
+```
+src/app/
+├── core/
+│   ├── guards/
+│   │   └── auth.guard.ts            ← protege rotas autenticadas
+│   ├── interceptors/
+│   │   └── jwt.interceptor.ts       ← injeta token JWT em toda requisição
+│   ├── models/
+│   │   ├── usuario.model.ts
+│   │   ├── projeto.model.ts
+│   │   └── tarefa.model.ts
+│   └── services/
+│       ├── auth.service.ts          ← login, registro, logout
+│       ├── projeto.service.ts       ← CRUD de projetos
+│       └── tarefa.service.ts        ← CRUD de tarefas
+├── pages/
+│   ├── login/                       ← tela de login
+│   ├── register/                    ← tela de cadastro
+│   ├── dashboard/                   ← kanban com todas as tarefas
+│   ├── projetos/                    ← listagem e gestão de projetos
+│   └── tarefas/                     ← listagem e gestão de tarefas
+├── app.config.ts                    ← configuração central
+├── app.routes.ts                    ← rotas da aplicação
+└── app.ts                           ← componente raiz
+```
+
+---
+
+## Telas
+
+### Login — `/login`
+Autenticação com email e senha. Após login o token JWT é salvo no `localStorage` e o usuário é redirecionado ao dashboard.
+
+### Cadastro — `/register`
+Criação de nova conta. Após cadastro o usuário já é autenticado automaticamente.
+
+### Dashboard — `/dashboard`
+Visão Kanban com três colunas — Pendente, Em Andamento e Concluído. Permite filtrar por projeto e alterar o status das tarefas diretamente no board.
+
+### Projetos — `/projetos`
+Lista todos os projetos do usuário. Ao clicar em um projeto, exibe as tarefas vinculadas no painel lateral. Permite criar, editar e excluir projetos e tarefas.
+
+### Tarefas — `/tarefas`
+Lista todas as tarefas do usuário em formato de cards. Permite criar, editar e excluir tarefas com seleção de projeto e status.
+
+---
+
+## Autenticação
+
+O fluxo de autenticação funciona assim:
+
+```
+1. Usuário faz login → API retorna token JWT
+2. Token salvo no localStorage
+3. JwtInterceptor injeta o token em toda requisição HTTP
+4. AuthGuard verifica o token antes de carregar rotas protegidas
+5. Logout remove o token e redireciona para /login
+```
+
+---
+
+## Como executar
+
+### Pré-requisitos
+
+- Node.js 20+
+- Angular CLI 17+
+
+### 1. Instalar dependências
+
+```bash
+npm install
+```
+
+### 2. Executar em desenvolvimento
 
 ```bash
 ng serve
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Acesse `http://localhost:4200`
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
+### 3. Build para produção
 
 ```bash
 ng build
 ```
 
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
+Os arquivos gerados ficam em `dist/taskflow-frontend/`
 
-## Running unit tests
+---
 
-To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:
+## Configuração da API
 
-```bash
-ng test
+A URL base da API está configurada nos services em `src/app/core/services/`. Para apontar para outro ambiente, altere a constante `API` em cada service:
+
+```typescript
+private readonly API = 'http://localhost:8080/projetos';
 ```
 
-## Running end-to-end tests
+---
 
-For end-to-end (e2e) testing, run:
+## Conceitos utilizados
 
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+| Conceito | Onde é usado |
+|---|---|
+| Standalone Components | Todos os componentes |
+| Lazy Loading | Carregamento das rotas |
+| Reactive Forms | Formulários de login, cadastro, projetos e tarefas |
+| HttpInterceptor | Injeção automática do token JWT |
+| CanActivateFn | Proteção das rotas autenticadas |
+| BehaviorSubject | Estado do usuário logado |
+| Observable + subscribe | Consumo da API REST |

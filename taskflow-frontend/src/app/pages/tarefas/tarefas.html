@@ -1,1 +1,134 @@
-<p>tarefas works!</p>
+<mat-toolbar color="primary">
+  <span class="logo-toolbar">Task<strong>Flow</strong></span>
+  <span class="spacer"></span>
+  <button mat-button routerLink="/dashboard">
+    <mat-icon>dashboard</mat-icon> Dashboard
+  </button>
+  <button mat-button routerLink="/projetos">
+    <mat-icon>folder</mat-icon> Projetos
+  </button>
+  <button mat-button [matMenuTriggerFor]="userMenu">
+    <mat-icon>account_circle</mat-icon>
+    {{ authService.getUsuario()?.nome }}
+  </button>
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>exit_to_app</mat-icon> Sair
+    </button>
+  </mat-menu>
+</mat-toolbar>
+
+<div class="tarefas-container">
+
+  <div class="page-header">
+    <div>
+      <h2>Tarefas</h2>
+      <p>Todas as suas tarefas em um só lugar</p>
+    </div>
+    <button mat-raised-button color="primary" (click)="abrirForm()">
+      <mat-icon>add</mat-icon> Nova tarefa
+    </button>
+  </div>
+
+  <div *ngIf="loading" class="loading-center">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading">
+
+    <div *ngIf="tarefas.length === 0" class="empty-msg">
+      <mat-icon>assignment</mat-icon>
+      <p>Nenhuma tarefa encontrada. Crie sua primeira tarefa!</p>
+    </div>
+
+    <div class="tarefas-grid">
+      <mat-card *ngFor="let tarefa of tarefas" class="tarefa-card">
+        <mat-card-content>
+          <div class="tarefa-header">
+            <span class="tarefa-titulo">{{ tarefa.titulo }}</span>
+            <span class="status-badge"
+                  [class]="'status-' + tarefa.status.toLowerCase()">
+              {{ getStatusLabel(tarefa.status) }}
+            </span>
+          </div>
+          <div class="tarefa-desc" *ngIf="tarefa.descricao">
+            {{ tarefa.descricao }}
+          </div>
+          <div class="tarefa-meta">
+            <span class="projeto-tag">{{ tarefa.projetoNome }}</span>
+            <span class="prazo" *ngIf="tarefa.prazo">
+              Prazo: {{ tarefa.prazo | date:'dd/MM/yyyy' }}
+            </span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary" (click)="abrirForm(tarefa)">
+            <mat-icon>edit</mat-icon> Editar
+          </button>
+          <button mat-button color="warn" (click)="deletar(tarefa.id)">
+            <mat-icon>delete</mat-icon> Excluir
+          </button>
+        </mat-card-actions>
+      </mat-card>
+    </div>
+
+  </div>
+</div>
+
+<div class="modal-overlay" *ngIf="mostrarForm" (click)="fecharForm()">
+  <mat-card class="modal-card" (click)="$event.stopPropagation()">
+    <mat-card-header>
+      <mat-card-title>
+        {{ editando ? 'Editar tarefa' : 'Nova tarefa' }}
+      </mat-card-title>
+    </mat-card-header>
+    <mat-card-content>
+      <form [formGroup]="form" (ngSubmit)="salvar()">
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Título</mat-label>
+          <input matInput formControlName="titulo"
+                 placeholder="Nome da tarefa">
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Descrição</mat-label>
+          <textarea matInput formControlName="descricao"
+                    rows="2" placeholder="Descreva a tarefa..."></textarea>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Projeto</mat-label>
+          <mat-select formControlName="projetoId">
+            <mat-option *ngFor="let p of projetos" [value]="p.id">
+              {{ p.nome }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Status</mat-label>
+          <mat-select formControlName="status">
+            <mat-option *ngFor="let s of statusOpcoes" [value]="s.valor">
+              {{ s.label }}
+            </mat-option>
+          </mat-select>
+        </mat-form-field>
+
+        <mat-form-field appearance="outline" class="full-width">
+          <mat-label>Prazo</mat-label>
+          <input matInput formControlName="prazo" type="date">
+        </mat-form-field>
+
+        <div class="modal-actions">
+          <button mat-button type="button"
+                  (click)="fecharForm()">Cancelar</button>
+          <button mat-raised-button color="primary" type="submit">
+            {{ editando ? 'Salvar' : 'Criar tarefa' }}
+          </button>
+        </div>
+
+      </form>
+    </mat-card-content>
+  </mat-card>
+</div>

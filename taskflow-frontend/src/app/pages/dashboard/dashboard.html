@@ -1,1 +1,173 @@
-<p>dashboard works!</p>
+<mat-toolbar color="primary">
+  <span class="logo-toolbar">Task<strong>Flow</strong></span>
+  <span class="spacer"></span>
+  <button mat-button routerLink="/projetos">
+    <mat-icon>folder</mat-icon> Projetos
+  </button>
+  <button mat-button routerLink="/tarefas">
+    <mat-icon>assignment</mat-icon> Tarefas
+  </button>
+  <button mat-button [matMenuTriggerFor]="userMenu">
+    <mat-icon>account_circle</mat-icon>
+    {{ authService.getUsuario()?.nome }}
+  </button>
+  <mat-menu #userMenu="matMenu">
+    <button mat-menu-item (click)="logout()">
+      <mat-icon>exit_to_app</mat-icon> Sair
+    </button>
+  </mat-menu>
+</mat-toolbar>
+
+<div class="dashboard-container">
+
+  <div class="dashboard-header">
+    <div>
+      <h2>Dashboard</h2>
+      <p>Visão geral das suas tarefas</p>
+    </div>
+    <button mat-raised-button color="primary" routerLink="/tarefas">
+      <mat-icon>add</mat-icon> Nova tarefa
+    </button>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card pendente">
+      <div class="stat-num">{{ tarefasPorStatus('PENDENTE').length }}</div>
+      <div class="stat-label">Pendentes</div>
+    </div>
+    <div class="stat-card andamento">
+      <div class="stat-num">{{ tarefasPorStatus('EM_ANDAMENTO').length }}</div>
+      <div class="stat-label">Em andamento</div>
+    </div>
+    <div class="stat-card concluido">
+      <div class="stat-num">{{ tarefasPorStatus('CONCLUIDO').length }}</div>
+      <div class="stat-label">Concluídas</div>
+    </div>
+  </div>
+
+  <div class="filtro-row">
+    <mat-form-field appearance="outline" class="filtro-select">
+      <mat-label>Filtrar por projeto</mat-label>
+      <mat-select [(ngModel)]="projetoFiltro">
+        <mat-option [value]="null">Todos os projetos</mat-option>
+        <mat-option *ngFor="let p of projetos" [value]="p.id">
+          {{ p.nome }}
+        </mat-option>
+      </mat-select>
+    </mat-form-field>
+  </div>
+
+  <div *ngIf="loading" class="loading-center">
+    <mat-spinner diameter="40"></mat-spinner>
+  </div>
+
+  <div *ngIf="!loading" class="kanban-board">
+
+    <div class="kanban-col">
+      <div class="kanban-col-header pendente-header">
+        <span>Pendente</span>
+        <span class="badge">{{ tarefasPorStatus('PENDENTE').length }}</span>
+      </div>
+      <mat-card *ngFor="let tarefa of tarefasPorStatus('PENDENTE')"
+                class="tarefa-card">
+        <mat-card-content>
+          <div class="tarefa-titulo">{{ tarefa.titulo }}</div>
+          <div class="tarefa-desc">{{ tarefa.descricao }}</div>
+          <div class="tarefa-meta">
+            <span class="projeto-tag">{{ tarefa.projetoNome }}</span>
+            <span class="prazo" *ngIf="tarefa.prazo">
+              {{ tarefa.prazo | date:'dd/MM/yy' }}
+            </span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary"
+                  (click)="alterarStatus(tarefa, 'EM_ANDAMENTO')">
+            Iniciar
+          </button>
+          <button mat-icon-button color="warn"
+                  (click)="deletarTarefa(tarefa.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+      <div *ngIf="tarefasPorStatus('PENDENTE').length === 0"
+           class="col-empty">
+        Nenhuma tarefa pendente
+      </div>
+    </div>
+
+    <div class="kanban-col">
+      <div class="kanban-col-header andamento-header">
+        <span>Em andamento</span>
+        <span class="badge">{{ tarefasPorStatus('EM_ANDAMENTO').length }}</span>
+      </div>
+      <mat-card *ngFor="let tarefa of tarefasPorStatus('EM_ANDAMENTO')"
+                class="tarefa-card">
+        <mat-card-content>
+          <div class="tarefa-titulo">{{ tarefa.titulo }}</div>
+          <div class="tarefa-desc">{{ tarefa.descricao }}</div>
+          <div class="tarefa-meta">
+            <span class="projeto-tag">{{ tarefa.projetoNome }}</span>
+            <span class="prazo" *ngIf="tarefa.prazo">
+              {{ tarefa.prazo | date:'dd/MM/yy' }}
+            </span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button color="primary"
+                  (click)="alterarStatus(tarefa, 'CONCLUIDO')">
+            Concluir
+          </button>
+          <button mat-button
+                  (click)="alterarStatus(tarefa, 'PENDENTE')">
+            Voltar
+          </button>
+          <button mat-icon-button color="warn"
+                  (click)="deletarTarefa(tarefa.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+      <div *ngIf="tarefasPorStatus('EM_ANDAMENTO').length === 0"
+           class="col-empty">
+        Nenhuma tarefa em andamento
+      </div>
+    </div>
+
+    <div class="kanban-col">
+      <div class="kanban-col-header concluido-header">
+        <span>Concluído</span>
+        <span class="badge">{{ tarefasPorStatus('CONCLUIDO').length }}</span>
+      </div>
+      <mat-card *ngFor="let tarefa of tarefasPorStatus('CONCLUIDO')"
+                class="tarefa-card concluida">
+        <mat-card-content>
+          <div class="tarefa-titulo">{{ tarefa.titulo }}</div>
+          <div class="tarefa-desc">{{ tarefa.descricao }}</div>
+          <div class="tarefa-meta">
+            <span class="projeto-tag">{{ tarefa.projetoNome }}</span>
+            <span class="prazo" *ngIf="tarefa.prazo">
+              {{ tarefa.prazo | date:'dd/MM/yy' }}
+            </span>
+          </div>
+        </mat-card-content>
+        <mat-card-actions>
+          <button mat-button
+                  (click)="alterarStatus(tarefa, 'EM_ANDAMENTO')">
+            Reabrir
+          </button>
+          <button mat-icon-button color="warn"
+                  (click)="deletarTarefa(tarefa.id)">
+            <mat-icon>delete</mat-icon>
+          </button>
+        </mat-card-actions>
+      </mat-card>
+      <div *ngIf="tarefasPorStatus('CONCLUIDO').length === 0"
+           class="col-empty">
+        Nenhuma tarefa concluída
+      </div>
+    </div>
+
+  </div>
+</div>

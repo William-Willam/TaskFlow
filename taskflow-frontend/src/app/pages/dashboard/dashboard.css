@@ -1,0 +1,161 @@
+.spacer { flex: 1; }
+
+.logo-toolbar {
+  font-size: 1.2rem;
+  letter-spacing: -0.5px;
+}
+
+.dashboard-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.dashboard-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.dashboard-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.dashboard-header p {
+  margin: 4px 0 0;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.stat-card {
+  border-radius: 10px;
+  padding: 1.25rem;
+  text-align: center;
+}
+
+.stat-card.pendente  { background: #fff8e1; }
+.stat-card.andamento { background: #e3f2fd; }
+.stat-card.concluido { background: #e8f5e9; }
+
+.stat-num {
+  font-size: 2rem;
+  font-weight: 700;
+}
+
+.pendente  .stat-num { color: #f57f17; }
+.andamento .stat-num { color: #1565c0; }
+.concluido .stat-num { color: #2e7d32; }
+
+.stat-label {
+  font-size: 0.85rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.filtro-row {
+  margin-bottom: 1.5rem;
+}
+
+.filtro-select {
+  width: 250px;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.kanban-board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  align-items: start;
+}
+
+.kanban-col {
+  background: #f5f5f5;
+  border-radius: 10px;
+  padding: 1rem;
+  min-height: 400px;
+}
+
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 0.95rem;
+  padding: 0.5rem 0;
+  margin-bottom: 1rem;
+  border-bottom: 3px solid;
+}
+
+.pendente-header  { color: #f57f17; border-color: #f57f17; }
+.andamento-header { color: #1565c0; border-color: #1565c0; }
+.concluido-header { color: #2e7d32; border-color: #2e7d32; }
+
+.badge {
+  background: white;
+  border-radius: 12px;
+  padding: 2px 10px;
+  font-size: 0.8rem;
+  color: #555;
+}
+
+.tarefa-card {
+  margin-bottom: 0.75rem;
+}
+
+.tarefa-card.concluida {
+  opacity: 0.7;
+}
+
+.tarefa-titulo {
+  font-weight: 500;
+  font-size: 0.95rem;
+  margin-bottom: 4px;
+}
+
+.tarefa-desc {
+  font-size: 0.82rem;
+  color: #666;
+  margin-bottom: 8px;
+  line-height: 1.4;
+}
+
+.tarefa-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.projeto-tag {
+  font-size: 0.75rem;
+  background: #e8eaf6;
+  color: #3949ab;
+  padding: 2px 8px;
+  border-radius: 12px;
+}
+
+.prazo {
+  font-size: 0.75rem;
+  color: #888;
+}
+
+.col-empty {
+  text-align: center;
+  color: #bbb;
+  font-size: 0.85rem;
+  padding: 2rem 0;
+}

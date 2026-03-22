@@ -1,0 +1,194 @@
+.spacer { flex: 1; }
+
+.logo-toolbar {
+  font-size: 1.2rem;
+  letter-spacing: -0.5px;
+}
+
+.projetos-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+  margin: 0;
+  font-size: 1.6rem;
+  font-weight: 600;
+}
+
+.page-header p {
+  margin: 4px 0 0;
+  color: #888;
+  font-size: 0.9rem;
+}
+
+.loading-center {
+  display: flex;
+  justify-content: center;
+  padding: 3rem;
+}
+
+.layout-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 1.5rem;
+  align-items: start;
+}
+
+.projetos-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.projeto-card {
+  cursor: pointer;
+  transition: box-shadow 0.2s;
+  border-left: 4px solid transparent;
+}
+
+.projeto-card:hover {
+  box-shadow: 0 4px 12px rgba(0,0,0,0.12);
+}
+
+.projeto-card.selecionado {
+  border-left-color: #1976d2;
+  background: #f3f4ff;
+}
+
+.projeto-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.projeto-nome {
+  font-weight: 600;
+  font-size: 0.95rem;
+}
+
+.projeto-acoes {
+  display: flex;
+}
+
+.projeto-desc {
+  font-size: 0.82rem;
+  color: #666;
+  margin-top: 4px;
+}
+
+.tarefas-painel {
+  background: #fafafa;
+  border-radius: 10px;
+  padding: 1.25rem;
+  min-height: 400px;
+}
+
+.tarefas-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.tarefas-header h3 {
+  margin: 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.tarefa-card {
+  margin-bottom: 0.75rem;
+}
+
+.tarefa-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 4px;
+}
+
+.tarefa-titulo {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.status-badge {
+  font-size: 0.72rem;
+  font-weight: 500;
+  padding: 2px 10px;
+  border-radius: 12px;
+}
+
+.status-pendente     { background: #fff8e1; color: #f57f17; }
+.status-em_andamento { background: #e3f2fd; color: #1565c0; }
+.status-concluido    { background: #e8f5e9; color: #2e7d32; }
+
+.tarefa-desc {
+  font-size: 0.82rem;
+  color: #666;
+}
+
+.tarefa-prazo {
+  font-size: 0.78rem;
+  color: #999;
+  margin-top: 4px;
+}
+
+.empty-msg {
+  text-align: center;
+  color: #bbb;
+  font-size: 0.85rem;
+  padding: 2rem 0;
+}
+
+.empty-painel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #ccc;
+}
+
+.empty-painel mat-icon {
+  font-size: 3rem;
+  width: 3rem;
+  height: 3rem;
+  margin-bottom: 0.5rem;
+}
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-card {
+  width: 100%;
+  max-width: 460px;
+  padding: 0.5rem;
+}
+
+.full-width {
+  width: 100%;
+  margin-bottom: 0.5rem;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 0.5rem;
+}
