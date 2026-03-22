@@ -9,15 +9,15 @@ export interface AuthRequest{
     senha: string;
 }
 
-export interface RegisterRequest{
-    nome: string;
-    email: string;
-    senha: string;
+export interface RegisterRequest {
+  nome: string;
+  email: string;
+  senha: string;
 }
 
-export interface AuthResponse{
-    token: string;
-    nome: string;
-    email: string;
-    id: number;
+export interface AuthResponse {
+  token: string;
+  nome: string;
+  email: string;
+  id: number;
 }

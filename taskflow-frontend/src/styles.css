@@ -1,1 +1,45 @@
 /* You can add global styles to this file, and also import other style files */
+/* Modern CSS Reset */
+
+/* Box sizing */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+/* Remove margens padrão */
+body, h1, h2, h3, h4, p, figure, blockquote, dl, dd {
+  margin: 0;
+}
+
+/* Tipografia base */
+body {
+  min-height: 100vh;
+  line-height: 1.5;
+  text-rendering: optimizeSpeed;
+}
+
+/* Listas */
+ul[role='list'], ol[role='list'] {
+  list-style: none;
+}
+
+/* Links */
+a:not([class]) {
+  text-decoration-skip-ink: auto;
+}
+
+/* Imagens */
+img, picture {
+  max-width: 100%;
+  display: block;
+}
+
+/* Inputs e botões */
+input, button, textarea, select {
+  font: inherit;
+}
+
+/* Scroll suave opcional */
+html:focus-within {
+  scroll-behavior: smooth;
+}
