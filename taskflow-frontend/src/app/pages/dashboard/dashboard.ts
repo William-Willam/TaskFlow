@@ -9,11 +9,12 @@ import { MatCardModule } from '@angular/material/card';
 import { MatSelectModule } from '@angular/material/select';
 import { MatMenuModule } from '@angular/material/menu';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
-import { BehaviorSubject, combineLatest, map, switchMap, startWith } from 'rxjs';
+import { BehaviorSubject, Observable, combineLatest, switchMap, map } from 'rxjs';
 import { TarefaService } from '../../core/services/tarefa.service';
 import { ProjetoService } from '../../core/services/projeto.service';
 import { AuthService } from '../../core/services/auth.service';
 import { Tarefa, StatusTarefa, TarefaRequest } from '../../core/models/tarefa.model';
+import { Projeto } from '../../core/models/projeto.model';
 
 @Component({
   selector: 'app-dashboard',
@@ -39,16 +40,8 @@ export class Dashboard {
   private filtro$ = new BehaviorSubject<number | null>(null);
   private reload$ = new BehaviorSubject<void>(undefined);
 
-  projetos$ = this.projetoService.listar();
-
-  tarefas$ = combineLatest([
-    this.reload$.pipe(switchMap(() => this.tarefaService.listarTodas())),
-    this.filtro$
-  ]).pipe(
-    map(([tarefas, filtro]) =>
-      filtro ? tarefas.filter(t => t.projetoId === filtro) : tarefas
-    )
-  );
+  tarefas$!: Observable<Tarefa[]>;
+  projetos$!: Observable<Projeto[]>;
 
   get projetoFiltro() { return this.filtro$.value; }
   set projetoFiltro(val: number | null) { this.filtro$.next(val); }
@@ -57,7 +50,18 @@ export class Dashboard {
     private tarefaService: TarefaService,
     private projetoService: ProjetoService,
     public authService: AuthService
-  ) {}
+  ) {
+    this.projetos$ = this.projetoService.listar();
+
+    this.tarefas$ = combineLatest([
+      this.reload$.pipe(switchMap(() => this.tarefaService.listarTodas())),
+      this.filtro$
+    ]).pipe(
+      map(([tarefas, filtro]) =>
+        filtro ? tarefas.filter(t => t.projetoId === filtro) : tarefas
+      )
+    );
+  }
 
   reload(): void {
     this.reload$.next();
