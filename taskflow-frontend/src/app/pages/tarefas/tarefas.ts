@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -11,6 +11,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
+import { BehaviorSubject, Observable, switchMap } from 'rxjs';
 import { TarefaService } from '../../core/services/tarefa.service';
 import { ProjetoService } from '../../core/services/projeto.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -22,6 +23,7 @@ import { Projeto } from '../../core/models/projeto.model';
   standalone: true,
   imports: [
     CommonModule,
+    AsyncPipe,
     RouterLink,
     ReactiveFormsModule,
     MatToolbarModule,
@@ -37,11 +39,13 @@ import { Projeto } from '../../core/models/projeto.model';
   templateUrl: './tarefas.html',
   styleUrl: './tarefas.css'
 })
-export class Tarefas implements OnInit {
+export class Tarefas {
 
-  tarefas: Tarefa[] = [];
-  projetos: Projeto[] = [];
-  loading = true;
+  private reload$ = new BehaviorSubject<void>(undefined);
+
+  tarefas$!: Observable<Tarefa[]>;
+  projetos$!: Observable<Projeto[]>;
+
   mostrarForm = false;
   editando: Tarefa | null = null;
 
@@ -60,6 +64,12 @@ export class Tarefas implements OnInit {
     private fb: FormBuilder,
     private snackBar: MatSnackBar
   ) {
+    this.tarefas$ = this.reload$.pipe(
+      switchMap(() => this.tarefaService.listarTodas())
+    );
+
+    this.projetos$ = this.projetoService.listar();
+
     this.form = this.fb.group({
       titulo:    ['', [Validators.required, Validators.minLength(2)]],
       descricao: [''],
@@ -69,25 +79,8 @@ export class Tarefas implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    this.carregarProjetos();
-    this.carregarTarefas();
-  }
-
-  carregarProjetos(): void {
-    this.projetoService.listar().subscribe({
-      next: (projetos) => this.projetos = projetos
-    });
-  }
-
-  carregarTarefas(): void {
-    this.loading = true;
-    this.tarefaService.listarTodas().subscribe({
-      next: (tarefas) => {
-        this.tarefas = tarefas;
-        this.loading = false;
-      }
-    });
+  reload(): void {
+    this.reload$.next();
   }
 
   abrirForm(tarefa?: Tarefa): void {
@@ -122,7 +115,7 @@ export class Tarefas implements OnInit {
         next: () => {
           this.snackBar.open('Tarefa atualizada!', 'OK', { duration: 3000 });
           this.fecharForm();
-          this.carregarTarefas();
+          this.reload();
         }
       });
     } else {
@@ -130,7 +123,7 @@ export class Tarefas implements OnInit {
         next: () => {
           this.snackBar.open('Tarefa criada!', 'OK', { duration: 3000 });
           this.fecharForm();
-          this.carregarTarefas();
+          this.reload();
         }
       });
     }
@@ -140,7 +133,7 @@ export class Tarefas implements OnInit {
     this.tarefaService.deletar(id).subscribe({
       next: () => {
         this.snackBar.open('Tarefa excluída!', 'OK', { duration: 3000 });
-        this.carregarTarefas();
+        this.reload();
       }
     });
   }

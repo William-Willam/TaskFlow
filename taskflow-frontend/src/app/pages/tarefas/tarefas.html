@@ -30,11 +30,7 @@
     </button>
   </div>
 
-  <div *ngIf="loading" class="loading-center">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
-
-  <div *ngIf="!loading">
+  <ng-container *ngIf="tarefas$ | async as tarefas; else loadingTpl">
 
     <div *ngIf="tarefas.length === 0" class="empty-msg">
       <mat-icon>assignment</mat-icon>
@@ -72,7 +68,14 @@
       </mat-card>
     </div>
 
-  </div>
+  </ng-container>
+
+  <ng-template #loadingTpl>
+    <div class="loading-center">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  </ng-template>
+
 </div>
 
 <div class="modal-overlay" *ngIf="mostrarForm" (click)="fecharForm()">
@@ -100,7 +103,7 @@
         <mat-form-field appearance="outline" class="full-width">
           <mat-label>Projeto</mat-label>
           <mat-select formControlName="projetoId">
-            <mat-option *ngFor="let p of projetos" [value]="p.id">
+            <mat-option *ngFor="let p of projetos$ | async" [value]="p.id">
               {{ p.nome }}
             </mat-option>
           </mat-select>

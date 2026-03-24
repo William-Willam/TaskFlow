@@ -30,82 +30,94 @@
     </button>
   </div>
 
-  <div *ngIf="loading" class="loading-center">
-    <mat-spinner diameter="40"></mat-spinner>
-  </div>
+  <ng-container *ngIf="projetos$ | async as projetos; else loadingTpl">
 
-  <div *ngIf="!loading" class="layout-grid">
+    <div class="layout-grid">
 
-    <div class="projetos-lista">
-      <div *ngIf="projetos.length === 0" class="empty-msg">
-        Nenhum projeto criado ainda.
-      </div>
+      <div class="projetos-lista">
+        <div *ngIf="projetos.length === 0" class="empty-msg">
+          Nenhum projeto criado ainda.
+        </div>
 
-      <mat-card *ngFor="let projeto of projetos"
-                class="projeto-card"
-                [class.selecionado]="projetoSelecionado?.id === projeto.id"
-                (click)="selecionarProjeto(projeto)">
-        <mat-card-content>
-          <div class="projeto-header">
-            <div class="projeto-nome">{{ projeto.nome }}</div>
-            <div class="projeto-acoes">
-              <button mat-icon-button
-                      (click)="abrirFormProjeto(projeto); $event.stopPropagation()">
-                <mat-icon>edit</mat-icon>
-              </button>
-              <button mat-icon-button color="warn"
-                      (click)="deletarProjeto(projeto.id); $event.stopPropagation()">
-                <mat-icon>delete</mat-icon>
-              </button>
+        <mat-card *ngFor="let projeto of projetos"
+                  class="projeto-card"
+                  [class.selecionado]="projetoSelecionado?.id === projeto.id"
+                  (click)="selecionarProjeto(projeto)">
+          <mat-card-content>
+            <div class="projeto-header">
+              <div class="projeto-nome">{{ projeto.nome }}</div>
+              <div class="projeto-acoes">
+                <button mat-icon-button
+                        (click)="abrirFormProjeto(projeto); $event.stopPropagation()">
+                  <mat-icon>edit</mat-icon>
+                </button>
+                <button mat-icon-button color="warn"
+                        (click)="deletarProjeto(projeto.id); $event.stopPropagation()">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </div>
             </div>
-          </div>
-          <div class="projeto-desc">{{ projeto.descricao }}</div>
-        </mat-card-content>
-      </mat-card>
-    </div>
-
-    <div class="tarefas-painel" *ngIf="projetoSelecionado">
-      <div class="tarefas-header">
-        <h3>{{ projetoSelecionado.nome }}</h3>
-        <button mat-raised-button color="accent" (click)="abrirFormTarefa()">
-          <mat-icon>add</mat-icon> Nova tarefa
-        </button>
+            <div class="projeto-desc">{{ projeto.descricao }}</div>
+          </mat-card-content>
+        </mat-card>
       </div>
 
-      <div *ngIf="tarefas.length === 0" class="empty-msg">
-        Nenhuma tarefa neste projeto.
+      <ng-container *ngIf="projetoSelecionado">
+        <div class="tarefas-painel">
+          <div class="tarefas-header">
+            <h3>{{ projetoSelecionado.nome }}</h3>
+            <button mat-raised-button color="accent" (click)="abrirFormTarefa()">
+              <mat-icon>add</mat-icon> Nova tarefa
+            </button>
+          </div>
+
+          <ng-container *ngIf="tarefas$ | async as tarefas">
+            <div *ngIf="tarefas.length === 0" class="empty-msg">
+              Nenhuma tarefa neste projeto.
+            </div>
+
+            <mat-card *ngFor="let tarefa of tarefas" class="tarefa-card">
+              <mat-card-content>
+                <div class="tarefa-header">
+                  <span class="tarefa-titulo">{{ tarefa.titulo }}</span>
+                  <span class="status-badge"
+                        [class]="'status-' + tarefa.status.toLowerCase()">
+                    {{ getStatusLabel(tarefa.status) }}
+                  </span>
+                </div>
+                <div class="tarefa-desc">{{ tarefa.descricao }}</div>
+                <div class="tarefa-prazo" *ngIf="tarefa.prazo">
+                  Prazo: {{ tarefa.prazo | date:'dd/MM/yyyy' }}
+                </div>
+              </mat-card-content>
+              <mat-card-actions>
+                <button mat-icon-button color="warn"
+                        (click)="deletarTarefa(tarefa.id)">
+                  <mat-icon>delete</mat-icon>
+                </button>
+              </mat-card-actions>
+            </mat-card>
+          </ng-container>
+
+        </div>
+      </ng-container>
+
+      <div class="tarefas-painel empty-painel"
+           *ngIf="!projetoSelecionado && projetos.length > 0">
+        <mat-icon>folder_open</mat-icon>
+        <p>Selecione um projeto para ver as tarefas</p>
       </div>
 
-      <mat-card *ngFor="let tarefa of tarefas" class="tarefa-card">
-        <mat-card-content>
-          <div class="tarefa-header">
-            <span class="tarefa-titulo">{{ tarefa.titulo }}</span>
-            <span class="status-badge"
-                  [class]="'status-' + tarefa.status.toLowerCase()">
-              {{ getStatusLabel(tarefa.status) }}
-            </span>
-          </div>
-          <div class="tarefa-desc">{{ tarefa.descricao }}</div>
-          <div class="tarefa-prazo" *ngIf="tarefa.prazo">
-            Prazo: {{ tarefa.prazo | date:'dd/MM/yyyy' }}
-          </div>
-        </mat-card-content>
-        <mat-card-actions>
-          <button mat-icon-button color="warn"
-                  (click)="deletarTarefa(tarefa.id)">
-            <mat-icon>delete</mat-icon>
-          </button>
-        </mat-card-actions>
-      </mat-card>
     </div>
 
-    <div class="tarefas-painel empty-painel"
-         *ngIf="!projetoSelecionado && projetos.length > 0">
-      <mat-icon>folder_open</mat-icon>
-      <p>Selecione um projeto para ver as tarefas</p>
-    </div>
+  </ng-container>
 
-  </div>
+  <ng-template #loadingTpl>
+    <div class="loading-center">
+      <mat-spinner diameter="40"></mat-spinner>
+    </div>
+  </ng-template>
+
 </div>
 
 <div class="modal-overlay" *ngIf="mostrarFormProjeto"

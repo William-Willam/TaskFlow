@@ -1,5 +1,5 @@
-import { Component, OnInit } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component } from '@angular/core';
+import { CommonModule, AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { MatToolbarModule } from '@angular/material/toolbar';
@@ -10,6 +10,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatProgressSpinnerModule } from '@angular/material/progress-spinner';
 import { MatSnackBar, MatSnackBarModule } from '@angular/material/snack-bar';
 import { MatMenuModule } from '@angular/material/menu';
+import { BehaviorSubject, switchMap } from 'rxjs';
 import { ProjetoService } from '../../core/services/projeto.service';
 import { TarefaService } from '../../core/services/tarefa.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -21,6 +22,7 @@ import { Tarefa, TarefaRequest } from '../../core/models/tarefa.model';
   standalone: true,
   imports: [
     CommonModule,
+    AsyncPipe,
     RouterLink,
     ReactiveFormsModule,
     MatToolbarModule,
@@ -35,16 +37,27 @@ import { Tarefa, TarefaRequest } from '../../core/models/tarefa.model';
   templateUrl: './projetos.html',
   styleUrl: './projetos.css'
 })
-export class Projetos implements OnInit {
+export class Projetos {
 
-  projetos: Projeto[] = [];
-  tarefas: Tarefa[] = [];
-  loading = true;
+  private reloadProjetos$ = new BehaviorSubject<void>(undefined);
+  private reloadTarefas$ = new BehaviorSubject<number | null>(null);
 
-  mostrarFormProjeto = false;
-  mostrarFormTarefa = false;
+  projetos$ = this.reloadProjetos$.pipe(
+    switchMap(() => this.projetoService.listar())
+  );
+
+  tarefas$ = this.reloadTarefas$.pipe(
+    switchMap(projetoId =>
+      projetoId
+        ? this.tarefaService.listarPorProjeto(projetoId)
+        : []
+    )
+  );
+
   projetoSelecionado: Projeto | null = null;
   editandoProjeto: Projeto | null = null;
+  mostrarFormProjeto = false;
+  mostrarFormTarefa = false;
 
   formProjeto: FormGroup;
   formTarefa: FormGroup;
@@ -57,7 +70,7 @@ export class Projetos implements OnInit {
     private snackBar: MatSnackBar
   ) {
     this.formProjeto = this.fb.group({
-      nome:     ['', [Validators.required, Validators.minLength(2)]],
+      nome:      ['', [Validators.required, Validators.minLength(2)]],
       descricao: ['']
     });
 
@@ -70,18 +83,17 @@ export class Projetos implements OnInit {
     });
   }
 
-  ngOnInit(): void {
-    this.carregarProjetos();
+  reloadProjetos(): void {
+    this.reloadProjetos$.next();
   }
 
-  carregarProjetos(): void {
-    this.loading = true;
-    this.projetoService.listar().subscribe({
-      next: (projetos) => {
-        this.projetos = projetos;
-        this.loading = false;
-      }
-    });
+  reloadTarefas(): void {
+    this.reloadTarefas$.next(this.projetoSelecionado?.id ?? null);
+  }
+
+  selecionarProjeto(projeto: Projeto): void {
+    this.projetoSelecionado = projeto;
+    this.reloadTarefas$.next(projeto.id);
   }
 
   abrirFormProjeto(projeto?: Projeto): void {
@@ -110,7 +122,7 @@ export class Projetos implements OnInit {
         next: () => {
           this.snackBar.open('Projeto atualizado!', 'OK', { duration: 3000 });
           this.fecharFormProjeto();
-          this.carregarProjetos();
+          this.reloadProjetos();
         }
       });
     } else {
@@ -118,7 +130,7 @@ export class Projetos implements OnInit {
         next: () => {
           this.snackBar.open('Projeto criado!', 'OK', { duration: 3000 });
           this.fecharFormProjeto();
-          this.carregarProjetos();
+          this.reloadProjetos();
         }
       });
     }
@@ -128,23 +140,12 @@ export class Projetos implements OnInit {
     this.projetoService.deletar(id).subscribe({
       next: () => {
         this.snackBar.open('Projeto excluído!', 'OK', { duration: 3000 });
-        this.carregarProjetos();
         if (this.projetoSelecionado?.id === id) {
           this.projetoSelecionado = null;
-          this.tarefas = [];
+          this.reloadTarefas$.next(null);
         }
+        this.reloadProjetos();
       }
-    });
-  }
-
-  selecionarProjeto(projeto: Projeto): void {
-    this.projetoSelecionado = projeto;
-    this.carregarTarefas(projeto.id);
-  }
-
-  carregarTarefas(projetoId: number): void {
-    this.tarefaService.listarPorProjeto(projetoId).subscribe({
-      next: (tarefas) => this.tarefas = tarefas
     });
   }
 
@@ -166,7 +167,7 @@ export class Projetos implements OnInit {
       next: () => {
         this.snackBar.open('Tarefa criada!', 'OK', { duration: 3000 });
         this.fecharFormTarefa();
-        this.carregarTarefas(this.projetoSelecionado!.id);
+        this.reloadTarefas();
       }
     });
   }
@@ -175,7 +176,7 @@ export class Projetos implements OnInit {
     this.tarefaService.deletar(id).subscribe({
       next: () => {
         this.snackBar.open('Tarefa excluída!', 'OK', { duration: 3000 });
-        this.carregarTarefas(this.projetoSelecionado!.id);
+        this.reloadTarefas();
       }
     });
   }
